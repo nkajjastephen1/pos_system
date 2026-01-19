@@ -38,6 +38,7 @@ export function ProductDialog({
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     sku: '',
+    cost: 0,
     price: 0,
     stock: 0,
     category: 'other'
@@ -49,6 +50,7 @@ export function ProductDialog({
       setFormData({
         name: '',
         sku: '',
+        cost: 0,
         price: 0,
         stock: 0,
         category: 'other'
@@ -67,7 +69,7 @@ export function ProductDialog({
         name: e.target.value
       })} required placeholder="e.g. Wireless Mouse" />
 
-        <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-2 gap-4">
           <Input label="SKU" value={formData.sku} onChange={e => setFormData({
           ...formData,
           sku: e.target.value
@@ -79,6 +81,10 @@ export function ProductDialog({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
+          <Input label="Cost ($)" type="number" min="0" step="0.01" value={formData.cost} onChange={e => setFormData({
+          ...formData,
+          cost: parseFloat(e.target.value)
+        })} required />
           <Input label="Price ($)" type="number" min="0" step="0.01" value={formData.price} onChange={e => setFormData({
           ...formData,
           price: parseFloat(e.target.value)

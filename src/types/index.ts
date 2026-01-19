@@ -4,6 +4,7 @@ export interface Product {
   id: string;
   name: string;
   sku: string;
+  cost: number;
   price: number;
   stock: number;
   category: Category;
@@ -12,6 +13,7 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  customPrice?: number;
 }
 export interface Transaction {
   id: string;

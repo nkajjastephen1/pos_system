@@ -12,6 +12,7 @@ interface POSContextType {
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
+  updateCartItemPrice: (productId: string, price: number) => void;
   clearCart: () => void;
   processSale: (paymentMethod: PaymentMethod, amountPaid: number) => Transaction;
   searchProducts: (query: string) => Product[];
@@ -73,7 +74,7 @@ export function POSProvider({
   const removeFromCart = (productId: string) => {
     setCart(prev => prev.filter(item => item.product.id !== productId));
   };
-  const updateCartQuantity = (productId: string, quantity: number) => {
+    const updateCartQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
@@ -81,6 +82,12 @@ export function POSProvider({
     setCart(prev => prev.map(item => item.product.id === productId ? {
       ...item,
       quantity
+    } : item));
+  };
+  const updateCartItemPrice = (productId: string, price: number) => {
+    setCart(prev => prev.map(item => item.product.id === productId ? {
+      ...item,
+      customPrice: price
     } : item));
   };
   const clearCart = () => setCart([]);
