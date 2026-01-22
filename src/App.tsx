@@ -8,8 +8,10 @@ import { ProductsPage } from './pages/ProductsPage';
 import { POSPage } from './pages/POSPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { AuthProvider } from './context/AuthContext';
 export function App() {
   return <ThemeProvider>
+    <AuthProvider>
       <POSProvider>
         <BrowserRouter>
           <Routes>
@@ -24,5 +26,6 @@ export function App() {
           </Routes>
         </BrowserRouter>
       </POSProvider>
-    </ThemeProvider>;
+    </AuthProvider>;
+  </ThemeProvider>;
 }

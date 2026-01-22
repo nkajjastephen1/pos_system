@@ -1,61 +1,122 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { Product, CartItem, Transaction, PaymentMethod } from '../types';
-import { MOCK_PRODUCTS, MOCK_TRANSACTIONS } from '../utils/mockData';
+import * as database from '../services/database';
+import { useAuth } from './AuthContext';
 import { calculateSubtotal, calculateTax, calculateTotal, calculateChange } from '../utils/calculations';
+
 interface POSContextType {
   products: Product[];
   cart: CartItem[];
   transactions: Transaction[];
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (product: Product) => void;
-  deleteProduct: (id: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
+  updateProduct: (product: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
-  updateCartItemPrice: (productId: string, price: number) => void;
   clearCart: () => void;
-  processSale: (paymentMethod: PaymentMethod, amountPaid: number) => Transaction;
+  processSale: (paymentMethod: PaymentMethod, amountPaid: number) => Promise<Transaction>;
   searchProducts: (query: string) => Product[];
   filterProductsByCategory: (category: string) => Product[];
 }
+
 const POSContext = createContext<POSContextType | undefined>(undefined);
-export function POSProvider({
-  children
-}: {
-  children: React.ReactNode;
-}) {
-  // Initialize state from localStorage or mock data
-  const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('pos_products');
-    return saved ? JSON.parse(saved) : MOCK_PRODUCTS;
-  });
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('pos_transactions');
-    return saved ? JSON.parse(saved) : MOCK_TRANSACTIONS;
-  });
+
+export function POSProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  // Persist to localStorage
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch products on mount and when online
   useEffect(() => {
-    localStorage.setItem('pos_products', JSON.stringify(products));
-  }, [products]);
-  useEffect(() => {
-    localStorage.setItem('pos_transactions', JSON.stringify(transactions));
-  }, [transactions]);
-  // Product Actions
-  const addProduct = (productData: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: Math.random().toString(36).substr(2, 9)
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Try to fetch from Supabase
+        if (navigator.onLine) {
+          const productsData = await database.fetchProducts();
+          setProducts(productsData);
+          localStorage.setItem('pos_products', JSON.stringify(productsData));
+        } else {
+          // Use cached data if offline
+          const cached = localStorage.getItem('pos_products');
+          setProducts(cached ? JSON.parse(cached) : []);
+        }
+
+        // Fetch transactions only if user is logged in
+        if (user) {
+          const transactionsData = await database.fetchTransactions();
+          setTransactions(transactionsData);
+          localStorage.setItem('pos_transactions', JSON.stringify(transactionsData));
+        }
+      } catch (err: any) {
+        setError(err.message);
+        // Fall back to localStorage
+        const cached = localStorage.getItem('pos_products');
+        setProducts(cached ? JSON.parse(cached) : []);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setProducts(prev => [...prev, newProduct]);
+
+    loadData();
+
+    // Listen for online/offline changes
+    window.addEventListener('online', loadData);
+    window.addEventListener('offline', () => {});
+
+    return () => {
+      window.removeEventListener('online', loadData);
+    };
+  }, [user]);
+
+  // Product Actions
+  const addProduct = async (productData: Omit<Product, 'id'>) => {
+    try {
+      setError(null);
+      const newProduct = await database.addProduct(productData);
+      setProducts(prev => [...prev, newProduct]);
+      localStorage.setItem('pos_products', JSON.stringify([...products, newProduct]));
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
   };
-  const updateProduct = (updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+
+  const updateProduct = async (updatedProduct: Product) => {
+    try {
+      setError(null);
+      await database.updateProduct(updatedProduct.id, updatedProduct);
+      setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+      const updated = products.map(p => p.id === updatedProduct.id ? updatedProduct : p);
+      localStorage.setItem('pos_products', JSON.stringify(updated));
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
   };
-  const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+
+  const deleteProduct = async (id: string) => {
+    try {
+      setError(null);
+      await database.deleteProduct(id);
+      setProducts(prev => prev.filter(p => p.id !== id));
+      const updated = products.filter(p => p.id !== id);
+      localStorage.setItem('pos_products', JSON.stringify(updated));
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
   };
-  // Cart Actions
+
+  // Cart Actions (Local only until sale)
   const addToCart = (product: Product) => {
     setCart(prev => {
       const existing = prev.find(item => item.product.id === product.id);
@@ -65,16 +126,15 @@ export function POSProvider({
           quantity: item.quantity + 1
         } : item);
       }
-      return [...prev, {
-        product,
-        quantity: 1
-      }];
+      return [...prev, { product, quantity: 1 }];
     });
   };
+
   const removeFromCart = (productId: string) => {
     setCart(prev => prev.filter(item => item.product.id !== productId));
   };
-    const updateCartQuantity = (productId: string, quantity: number) => {
+
+  const updateCartQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
@@ -84,72 +144,101 @@ export function POSProvider({
       quantity
     } : item));
   };
-  const updateCartItemPrice = (productId: string, price: number) => {
-    setCart(prev => prev.map(item => item.product.id === productId ? {
-      ...item,
-      customPrice: price
-    } : item));
-  };
+
   const clearCart = () => setCart([]);
-  // Transaction Actions
-  const processSale = (paymentMethod: PaymentMethod, amountPaid: number): Transaction => {
-    const subtotal = calculateSubtotal(cart);
-    const tax = calculateTax(subtotal);
-    const total = calculateTotal(subtotal, tax);
-    const change = calculateChange(amountPaid, total);
-    const newTransaction: Transaction = {
-      id: `TRX-${Date.now().toString().slice(-6)}`,
-      items: [...cart],
-      subtotal,
-      tax,
-      total,
-      paymentMethod,
-      amountPaid,
-      change,
-      date: new Date().toISOString()
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-    // Update stock
-    setProducts(prev => prev.map(p => {
-      const cartItem = cart.find(item => item.product.id === p.id);
-      if (cartItem) {
-        return {
-          ...p,
-          stock: Math.max(0, p.stock - cartItem.quantity)
-        };
+
+  // Transaction Actions - SYNCED TO SUPABASE
+  const processSale = async (paymentMethod: PaymentMethod, amountPaid: number): Promise<Transaction> => {
+    try {
+      if (!user) throw new Error('User not authenticated');
+
+      setError(null);
+      const subtotal = calculateSubtotal(cart);
+      const tax = calculateTax(subtotal);
+      const total = calculateTotal(subtotal, tax);
+      const change = calculateChange(amountPaid, total);
+
+      const newTransaction: Transaction = {
+        id: `TRX-${Date.now().toString().slice(-6)}`,
+        items: [...cart],
+        subtotal,
+        tax,
+        total,
+        paymentMethod,
+        amountPaid,
+        change,
+        date: new Date().toISOString()
+      };
+
+      // Save to Supabase
+      if (navigator.onLine) {
+        await database.addTransaction(newTransaction, user.id);
       }
-      return p;
-    }));
-    clearCart();
-    return newTransaction;
+
+      // Update local transactions
+      setTransactions(prev => [newTransaction, ...prev]);
+
+      // Save to localStorage for sync later (offline queue)
+      const syncQueue = JSON.parse(localStorage.getItem('sync_queue') || '[]');
+      syncQueue.push({ type: 'transaction', data: newTransaction, userId: user.id });
+      localStorage.setItem('sync_queue', JSON.stringify(syncQueue));
+
+      // Update stock locally
+      setProducts(prev => prev.map(p => {
+        const cartItem = cart.find(item => item.product.id === p.id);
+        if (cartItem) {
+          return {
+            ...p,
+            stock: Math.max(0, p.stock - cartItem.quantity)
+          };
+        }
+        return p;
+      }));
+
+      clearCart();
+      return newTransaction;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
   };
+
   // Helpers
   const searchProducts = (query: string) => {
     const lowerQuery = query.toLowerCase();
     return products.filter(p => p.name.toLowerCase().includes(lowerQuery) || p.sku.toLowerCase().includes(lowerQuery));
   };
+
   const filterProductsByCategory = (category: string) => {
     if (category === 'all') return products;
     return products.filter(p => p.category === category);
   };
-  return <POSContext.Provider value={{
-    products,
-    cart,
-    transactions,
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    addToCart,
-    removeFromCart,
-    updateCartQuantity,
-    clearCart,
-    processSale,
-    searchProducts,
-    filterProductsByCategory
-  }}>
+
+  return (
+    <POSContext.Provider
+      value={{
+        products,
+        cart,
+        transactions,
+        isLoading,
+        error,
+        addProduct,
+        updateProduct,
+        deleteProduct,
+        addToCart,
+        removeFromCart,
+        updateCartQuantity,
+        clearCart,
+        processSale,
+        searchProducts,
+        filterProductsByCategory
+      }}
+    >
       {children}
-    </POSContext.Provider>;
+    </POSContext.Provider>
+  );
 }
+
 export function usePOS() {
   const context = useContext(POSContext);
   if (context === undefined) {

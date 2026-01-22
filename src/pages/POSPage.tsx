@@ -21,11 +21,16 @@ export function POSPage() {
   const handleCheckout = () => {
     setIsCheckoutOpen(true);
   };
-  const handleConfirmSale = (method: PaymentMethod, amountPaid: number) => {
-    const transaction = processSale(method, amountPaid);
-    setLastTransaction(transaction);
-    setIsCheckoutOpen(false);
-    setIsReceiptOpen(true);
+  const handleConfirmSale = async (method: PaymentMethod, amountPaid: number) => {
+    try {
+      const transaction = await processSale(method, amountPaid);
+      setLastTransaction(transaction);
+      setIsCheckoutOpen(false);
+      setIsReceiptOpen(true);
+    } catch (error) {
+      console.error('Sale failed:', error);
+      alert('Failed to process sale. Please try again.');
+    }
   };
   return <div className="flex h-[calc(100vh-4rem)] -m-4 sm:-m-6 lg:-m-8 overflow-hidden">
       {/* Left Side: Product Grid */}
