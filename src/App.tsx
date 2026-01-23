@@ -8,24 +8,30 @@ import { ProductsPage } from './pages/ProductsPage';
 import { POSPage } from './pages/POSPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { ReportsPage } from './pages/ReportsPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import { AuthProvider } from './context/AuthContext';
 export function App() {
-  return <ThemeProvider>
+  return (
     <AuthProvider>
-      <POSProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="pos" element={<POSPage />} />
-              <Route path="transactions" element={<TransactionsPage />} />
-              <Route path="reports" element={<ReportsPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </POSProvider>
-    </AuthProvider>;
-  </ThemeProvider>;
+      <ThemeProvider>
+        <POSProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="products" element={<ProductsPage />} />
+                <Route path="pos" element={<POSPage />} />
+                <Route path="transactions" element={<TransactionsPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </POSProvider>
+      </ThemeProvider>
+    </AuthProvider>
+  );
 }
