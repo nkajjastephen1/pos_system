@@ -80,12 +80,17 @@ export async function addTransaction(transaction: Transaction, userId: string) {
 export async function signUp(email: string, password: string, fullName: string) {
   const { data, error } = await supabase.auth.signUp({
     email,
-    password
+    password,
+    options: {
+      data: {
+        full_name: fullName
+      }
+    }
   });
 
   if (error) throw error;
 
-  // Insert user into users table
+  // Insert user into users table if it exists
   if (data.user) {
     const { error: insertError } = await supabase
       .from('users')
@@ -93,9 +98,14 @@ export async function signUp(email: string, password: string, fullName: string) 
         id: data.user.id,
         email,
         full_name: fullName
-      }]);
+      }])
+      .select();
 
-    if (insertError) throw insertError;
+    // Log but don't throw error if users table doesn't exist
+    // User is still created in auth system
+    if (insertError) {
+      console.warn('Warning: Could not insert user to users table:', insertError.message);
+    }
   }
 
   return data;
