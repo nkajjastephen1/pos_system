@@ -78,37 +78,49 @@ export async function addTransaction(transaction: Transaction, userId: string) {
 
 // ===== AUTHENTICATION =====
 export async function signUp(email: string, password: string, fullName: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName
+        }
+      }
+    });
+
+    if (error) {
+      console.error('Auth signup error:', error);
+      throw error;
+    }
+
+    // Try to insert user into users table
+    if (data.user) {
+      try {
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([{
+            id: data.user.id,
+            email,
+            full_name: fullName
+          }])
+          .select();
+
+        if (insertError) {
+          console.warn('Users table insert warning:', insertError);
+          // Don't throw - user is still created in auth system
+        }
+      } catch (tableError) {
+        console.warn('Users table operation failed (non-critical):', tableError);
+        // Non-critical error, user auth succeeded
       }
     }
-  });
 
-  if (error) throw error;
-
-  // Insert user into users table if it exists
-  if (data.user) {
-    const { error: insertError } = await supabase
-      .from('users')
-      .insert([{
-        id: data.user.id,
-        email,
-        full_name: fullName
-      }])
-      .select();
-
-    // Log but don't throw error if users table doesn't exist
-    // User is still created in auth system
-    if (insertError) {
-      console.warn('Warning: Could not insert user to users table:', insertError.message);
-    }
+    return data;
+  } catch (err) {
+    console.error('Signup failed:', err);
+    throw err;
   }
-
-  return data;
 }
 
 export async function signIn(email: string, password: string) {
