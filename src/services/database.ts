@@ -2,19 +2,20 @@ import { supabase } from './supabaseClient';
 import { Product, Transaction } from '../types';
 
 // ===== PRODUCTS =====
-export async function fetchProducts(): Promise<Product[]> {
+export async function fetchProducts(userId: string): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('*');
+    .select('*')
+    .eq('user_id', userId);
 
   if (error) throw error;
   return data || [];
 }
 
-export async function addProduct(product: Omit<Product, 'id'>) {
+export async function addProduct(product: Omit<Product, 'id'>, userId: string) {
   const { data, error } = await supabase
     .from('products')
-    .insert([product])
+    .insert([{ ...product, user_id: userId }])
     .select()
     .single();
 
@@ -44,10 +45,11 @@ export async function deleteProduct(id: string) {
 }
 
 // ===== TRANSACTIONS =====
-export async function fetchTransactions(): Promise<Transaction[]> {
+export async function fetchTransactions(userId: string): Promise<Transaction[]> {
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
+    .eq('user_id', userId)
     .order('date', { ascending: false });
 
   if (error) throw error;

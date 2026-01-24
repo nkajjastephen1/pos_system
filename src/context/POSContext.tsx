@@ -40,10 +40,12 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
         setError(null);
 
         // Try to fetch from Supabase
-        if (navigator.onLine) {
-          const productsData = await database.fetchProducts();
+        if (navigator.onLine && user) {
+          const productsData = await database.fetchProducts(user.id);
           setProducts(productsData);
           localStorage.setItem('pos_products', JSON.stringify(productsData));
+        } else if (!user) {
+          setProducts([]);
         } else {
           // Use cached data if offline
           const cached = localStorage.getItem('pos_products');
@@ -51,16 +53,21 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Fetch transactions only if user is logged in
-        if (user) {
-          const transactionsData = await database.fetchTransactions();
+        if (user && navigator.onLine) {
+          const transactionsData = await database.fetchTransactions(user.id);
           setTransactions(transactionsData);
           localStorage.setItem('pos_transactions', JSON.stringify(transactionsData));
+        } else if (user) {
+          const cached = localStorage.getItem('pos_transactions');
+          setTransactions(cached ? JSON.parse(cached) : []);
         }
       } catch (err: any) {
         setError(err.message);
         // Fall back to localStorage
-        const cached = localStorage.getItem('pos_products');
-        setProducts(cached ? JSON.parse(cached) : []);
+        if (user) {
+          const cached = localStorage.getItem('pos_products');
+          setProducts(cached ? JSON.parse(cached) : []);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -80,8 +87,9 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
   // Product Actions
   const addProduct = async (productData: Omit<Product, 'id'>) => {
     try {
+      if (!user) throw new Error('User not authenticated');
       setError(null);
-      const newProduct = await database.addProduct(productData);
+      const newProduct = await database.addProduct(productData, user.id);
       setProducts(prev => [...prev, newProduct]);
       localStorage.setItem('pos_products', JSON.stringify([...products, newProduct]));
     } catch (err: any) {
