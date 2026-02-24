@@ -39,7 +39,6 @@ export async function generateReportPdf(transactions: Transaction[], reportType:
   // Aggregate metrics
   const totalSales = filtered.reduce((s, t) => s + t.total, 0);
   const totalTransactions = filtered.length;
-  const totalTax = filtered.reduce((s, t) => s + t.tax, 0);
   const avgSale = totalTransactions ? totalSales / totalTransactions : 0;
 
   const breakdown: Record<string, number> = {};
@@ -91,8 +90,6 @@ export async function generateReportPdf(transactions: Transaction[], reportType:
   page.drawText(`Total Sales: ${formatCurrency(totalSales)}`, { x: 60, y, size: 10, font });
   y -= 14;
   page.drawText(`Total Transactions: ${totalTransactions}`, { x: 60, y, size: 10, font });
-  y -= 14;
-  page.drawText(`Total Tax: ${formatCurrency(totalTax)}`, { x: 60, y, size: 10, font });
   y -= 14;
   page.drawText(`Average Sale: ${formatCurrency(avgSale)}`, { x: 60, y, size: 10, font });
 

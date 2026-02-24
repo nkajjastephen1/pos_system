@@ -69,10 +69,6 @@ export function ReceiptPreview({
             <span>Subtotal</span>
             <span>{formatCurrency(transaction.subtotal)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Tax (10%)</span>
-            <span>{formatCurrency(transaction.tax)}</span>
-          </div>
           <div className="flex justify-between font-bold text-base mt-2">
             <span>TOTAL</span>
             <span>{formatCurrency(transaction.total)}</span>

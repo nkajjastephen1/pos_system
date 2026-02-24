@@ -4,7 +4,7 @@ import { ProductGrid } from '../components/POS/ProductGrid';
 import { CartPanel } from '../components/POS/CartPanel';
 import { CheckoutDialog } from '../components/POS/CheckoutDialog';
 import { ReceiptPreview } from '../components/POS/ReceiptPreview';
-import { calculateSubtotal, calculateTax, calculateTotal } from '../utils/calculations';
+import { calculateSubtotal, calculateTotal } from '../utils/calculations';
 import { PaymentMethod, Transaction } from '../types';
 export function POSPage() {
   const {
@@ -16,8 +16,7 @@ export function POSPage() {
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const subtotal = calculateSubtotal(cart);
-  const tax = calculateTax(subtotal);
-  const total = calculateTotal(subtotal, tax);
+  const total = calculateTotal(subtotal);
   const handleCheckout = () => {
     setIsCheckoutOpen(true);
   };

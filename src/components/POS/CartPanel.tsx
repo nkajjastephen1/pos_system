@@ -3,7 +3,7 @@ import { ShoppingCart, Trash2 } from 'lucide-react';
 import { CartItem as CartItemComponent } from './CartItem';
 import { Button } from '../ui/Button';
 import { usePOS } from '../../context/POSContext';
-import { calculateSubtotal, calculateTax, calculateTotal } from '../../utils/calculations';
+import { calculateSubtotal, calculateTotal } from '../../utils/calculations';
 import { formatCurrency } from '../../utils/formatters';
 interface CartPanelProps {
   onCheckout: () => void;
@@ -18,8 +18,7 @@ export function CartPanel({
     clearCart
   } = usePOS();
   const subtotal = calculateSubtotal(cart);
-  const tax = calculateTax(subtotal);
-  const total = calculateTotal(subtotal, tax);
+  const total = calculateTotal(subtotal);
   if (cart.length === 0) {
     return <div className="h-full flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 p-8 text-center border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
@@ -57,10 +56,6 @@ export function CartPanel({
           <div className="flex justify-between text-slate-600 dark:text-slate-400">
             <span>Subtotal</span>
             <span>{formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex justify-between text-slate-600 dark:text-slate-400">
-            <span>Tax (10%)</span>
-            <span>{formatCurrency(tax)}</span>
           </div>
           <div className="flex justify-between text-lg font-bold text-slate-900 dark:text-slate-100 pt-2 border-t border-slate-200 dark:border-slate-800">
             <span>Total</span>
