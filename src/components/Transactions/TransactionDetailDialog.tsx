@@ -65,10 +65,6 @@ export function TransactionDetailDialog({
             <span>Subtotal</span>
             <span>{formatCurrency(transaction.subtotal)}</span>
           </div>
-          <div className="flex justify-between w-48 text-slate-500 dark:text-slate-400">
-            <span>Tax (10%)</span>
-            <span>{formatCurrency(transaction.tax)}</span>
-          </div>
           <div className="flex justify-between w-48 text-lg font-bold text-slate-900 dark:text-slate-100 pt-2 border-t border-slate-200 dark:border-slate-800">
             <span>Total</span>
             <span>{formatCurrency(transaction.total)}</span>

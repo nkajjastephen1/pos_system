@@ -220,10 +220,10 @@ export const MOCK_TRANSACTIONS: Transaction[] = [{
     quantity: 2
   }],
   subtotal: 2049.0,
-  tax: 204.9,
-  total: 2253.9,
+  tax: 0,
+  total: 2049.0,
   paymentMethod: 'card',
-  amountPaid: 2253.9,
+  amountPaid: 2049.0,
   change: 0,
   date: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString() // 2 hours ago
 }, {
@@ -236,11 +236,11 @@ export const MOCK_TRANSACTIONS: Transaction[] = [{
     quantity: 1
   }],
   subtotal: 21.0,
-  tax: 2.1,
-  total: 23.1,
+  tax: 0,
+  total: 21.0,
   paymentMethod: 'cash',
   amountPaid: 25.0,
-  change: 1.9,
+  change: 4.0,
   date: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString() // 5 hours ago
 }
 // Add more transactions as needed for testing

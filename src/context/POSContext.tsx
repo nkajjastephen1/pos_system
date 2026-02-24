@@ -2,7 +2,7 @@ import React, { useEffect, useState, createContext, useContext } from 'react';
 import { Product, CartItem, Transaction, PaymentMethod } from '../types';
 import * as database from '../services/database';
 import { useAuth } from './AuthContext';
-import { calculateSubtotal, calculateTax, calculateTotal, calculateChange } from '../utils/calculations';
+import { calculateSubtotal, calculateTotal, calculateChange } from '../utils/calculations';
 
 interface POSContextType {
   products: Product[];
@@ -162,15 +162,14 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
 
       setError(null);
       const subtotal = calculateSubtotal(cart);
-      const tax = calculateTax(subtotal);
-      const total = calculateTotal(subtotal, tax);
+      const total = calculateTotal(subtotal);
       const change = calculateChange(amountPaid, total);
 
       const newTransaction: Transaction = {
         id: `TRX-${Date.now().toString().slice(-6)}`,
         items: [...cart],
         subtotal,
-        tax,
+        tax: 0,
         total,
         paymentMethod,
         amountPaid,
