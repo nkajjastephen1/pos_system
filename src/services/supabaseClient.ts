@@ -5,7 +5,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Provide fallback to allow app to at least load without crashing
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Missing Supabase environment variables. Some features may not work.');
+  console.error('❌ Missing Supabase environment variables!');
+  console.error('Please add to .env.local:');
+  console.error('VITE_SUPABASE_URL=your-project-url');
+  console.error('VITE_SUPABASE_ANON_KEY=your-anon-key');
+  console.error('Get these from: https://app.supabase.com/project/_/settings/api');
 }
 
 export const supabase = createClient(

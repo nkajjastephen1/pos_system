@@ -27,9 +27,11 @@ export function POSPage() {
       setLastTransaction(transaction);
       setIsCheckoutOpen(false);
       setIsReceiptOpen(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sale failed:', error);
-      alert('Failed to process sale. Please try again.');
+      // Extract meaningful error message
+      const errorMsg = error.message || 'Failed to process sale. Please try again.';
+      alert(errorMsg);
     }
   };
   return <div className="flex h-[calc(100vh-4rem)] -m-4 sm:-m-6 lg:-m-8 overflow-hidden">

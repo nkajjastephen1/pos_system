@@ -16,11 +16,20 @@ export function ProductsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const handleSave = (productData: Product | Omit<Product, 'id'>) => {
-    if ('id' in productData) {
-      updateProduct(productData);
-    } else {
-      addProduct(productData);
+  const handleSave = async (productData: Product | Omit<Product, 'id'>) => {
+    try {
+      console.log('handleSave called with:', productData);
+      if ('id' in productData) {
+        console.log('Updating product:', productData.id);
+        await updateProduct(productData);
+      } else {
+        console.log('Adding new product');
+        await addProduct(productData);
+      }
+      console.log('Product saved successfully');
+    } catch (error: any) {
+      console.error('Failed to save product:', error);
+      throw error;
     }
   };
   const handleEdit = (product: Product) => {

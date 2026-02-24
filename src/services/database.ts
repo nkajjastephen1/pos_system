@@ -13,26 +13,46 @@ export async function fetchProducts(userId: string): Promise<Product[]> {
 }
 
 export async function addProduct(product: Omit<Product, 'id'>, userId: string) {
-  const { data, error } = await supabase
-    .from('products')
-    .insert([{ ...product, user_id: userId }])
-    .select()
-    .single();
+  try {
+    console.log('addProduct - Inserting:', product);
+    const { data, error } = await supabase
+      .from('products')
+      .insert([product])
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw new Error(`Failed to insert product: ${error.message}`);
+    }
+    console.log('Product inserted successfully:', data);
+    return data;
+  } catch (err: any) {
+    console.error('addProduct error:', err);
+    throw err;
+  }
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>) {
-  const { data, error } = await supabase
-    .from('products')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
+  try {
+    console.log('updateProduct - Updating:', id, updates);
+    const { data, error } = await supabase
+      .from('products')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error('Supabase update error:', error);
+      throw new Error(`Failed to update product: ${error.message}`);
+    }
+    console.log('Product updated successfully:', data);
+    return data;
+  } catch (err: any) {
+    console.error('updateProduct error:', err);
+    throw err;
+  }
 }
 
 export async function deleteProduct(id: string) {
@@ -57,25 +77,35 @@ export async function fetchTransactions(userId: string): Promise<Transaction[]> 
 }
 
 export async function addTransaction(transaction: Transaction, userId: string) {
-  const { data, error } = await supabase
-    .from('transactions')
-    .insert([{
-      id: transaction.id,
-      user_id: userId,
-      items: transaction.items,
-      subtotal: transaction.subtotal,
-      tax: transaction.tax,
-      total: transaction.total,
-      payment_method: transaction.paymentMethod,
-      amount_paid: transaction.amountPaid,
-      change: transaction.change,
-      date: transaction.date
-    }])
-    .select()
-    .single();
+  try {
+    console.log('addTransaction - Inserting transaction:', { id: transaction.id, userId });
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert([{
+        id: transaction.id,
+        user_id: userId,
+        items: transaction.items,
+        subtotal: transaction.subtotal,
+        tax: transaction.tax,
+        total: transaction.total,
+        payment_method: transaction.paymentMethod,
+        amount_paid: transaction.amountPaid,
+        change: transaction.change,
+        date: transaction.date
+      }])
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error('Supabase transaction insert error:', error);
+      throw new Error(`Failed to save transaction: ${error.message}`);
+    }
+    console.log('Transaction saved successfully:', data);
+    return data;
+  } catch (err: any) {
+    console.error('addTransaction error:', err);
+    throw err;
+  }
 }
 
 // ===== AUTHENTICATION =====

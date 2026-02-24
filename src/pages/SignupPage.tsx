@@ -18,12 +18,18 @@ export default function SignupPage() {
     try {
       setError('');
       setIsLoading(true);
+      
+      // Check for missing environment variables
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        throw new Error('Supabase is not configured. Please check your .env.local file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+      }
+      
       await signUp(email, password, fullName);
       // Show success message and redirect
       alert('Account created! Please sign in.');
       navigate('/login');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }

@@ -7,7 +7,7 @@ import { Product, Category } from '../../types';
 interface ProductDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (product: Omit<Product, 'id'> | Product) => void;
+  onSave: (product: Omit<Product, 'id'> | Product) => Promise<void>;
   product?: Product;
 }
 const CATEGORIES: {
@@ -57,10 +57,26 @@ export function ProductDialog({
       });
     }
   }, [product, isOpen]);
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData as Product);
-    onClose();
+    try {
+      // Validate required fields
+      if (!formData.name || !formData.sku) {
+        alert('Please fill in all required fields');
+        return;
+      }
+      console.log('Submitting product:', formData);
+      await onSave(formData as Product);
+      onClose();
+    } catch (error: any) {
+      console.error('Error saving product:', error);
+      // Check for duplicate SKU error
+      if (error.message && error.message.includes('duplicate key') && error.message.includes('sku')) {
+        alert(`A product with SKU "${formData.sku}" already exists. Please use a different SKU.`);
+      } else {
+        alert(`Failed to save product: ${error.message}`);
+      }
+    }
   };
   return <Dialog isOpen={isOpen} onClose={onClose} title={product ? 'Edit Product' : 'Add New Product'}>
       <form onSubmit={handleSubmit} className="space-y-4">

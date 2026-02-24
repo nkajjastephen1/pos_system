@@ -178,9 +178,18 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
         date: new Date().toISOString()
       };
 
+      console.log('processSale - Creating transaction:', newTransaction);
+
       // Save to Supabase
       if (navigator.onLine) {
-        await database.addTransaction(newTransaction, user.id);
+        console.log('processSale - Online, saving to Supabase...');
+        try {
+          await database.addTransaction(newTransaction, user.id);
+          console.log('processSale - Transaction saved to Supabase');
+        } catch (dbError: any) {
+          console.error('processSale - Failed to save to Supabase:', dbError);
+          // Continue anyway - we'll still save locally
+        }
       }
 
       // Update local transactions
@@ -204,8 +213,10 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
       }));
 
       clearCart();
+      console.log('processSale - Transaction completed successfully');
       return newTransaction;
     } catch (err: any) {
+      console.error('processSale - Error:', err);
       setError(err.message);
       throw err;
     }
