@@ -1,4 +1,3 @@
-import React, { Component } from 'react';
 import { ShoppingCart, Trash2 } from 'lucide-react';
 import { CartItem as CartItemComponent } from './CartItem';
 import { Button } from '../ui/Button';
@@ -14,6 +13,7 @@ export function CartPanel({
   const {
     cart,
     updateCartQuantity,
+    updateCustomPrice,
     removeFromCart,
     clearCart
   } = usePOS();
@@ -47,7 +47,7 @@ export function CartPanel({
 
       {/* Cart Items */}
       <div className="flex-1 overflow-y-auto">
-        {cart.map(item => <CartItemComponent key={item.product.id} item={item} onUpdateQuantity={updateCartQuantity} onRemove={removeFromCart} />)}
+        {cart.map(item => <CartItemComponent key={item.product.id} item={item} onUpdateQuantity={updateCartQuantity} onUpdatePrice={updateCustomPrice} onRemove={removeFromCart} />)}
       </div>
 
       {/* Totals Section */}
