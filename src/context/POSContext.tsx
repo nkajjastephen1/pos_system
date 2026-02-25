@@ -16,6 +16,7 @@ interface POSContextType {
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
+  updateCustomPrice: (productId: string, customPrice: number | undefined) => void;
   clearCart: () => void;
   processSale: (paymentMethod: PaymentMethod, amountPaid: number) => Promise<Transaction>;
   searchProducts: (query: string) => Product[];
@@ -153,6 +154,13 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
     } : item));
   };
 
+  const updateCustomPrice = (productId: string, customPrice: number | undefined) => {
+    setCart(prev => prev.map(item => item.product.id === productId ? {
+      ...item,
+      customPrice: customPrice && customPrice > 0 ? customPrice : undefined
+    } : item));
+  };
+
   const clearCart = () => setCart([]);
 
   // Transaction Actions - SYNCED TO SUPABASE
@@ -246,6 +254,7 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
         addToCart,
         removeFromCart,
         updateCartQuantity,
+        updateCustomPrice,
         clearCart,
         processSale,
         searchProducts,

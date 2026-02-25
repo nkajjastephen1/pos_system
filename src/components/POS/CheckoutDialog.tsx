@@ -32,7 +32,7 @@ export function CheckoutDialog({
       onConfirm(method, method === 'cash' ? parseFloat(amountPaid) : total);
     }
   };
-  const quickAmounts = [total, Math.ceil(total / 5) * 5, Math.ceil(total / 10) * 10, Math.ceil(total / 20) * 20, Math.ceil(total / 50) * 50, Math.ceil(total / 100) * 100];
+  const quickAmounts = [total, Math.ceil(total / 5) * 5, Math.ceil(total / 10) * 10, Math.ceil(total / 20) * 20];
   const uniqueQuickAmounts = Array.from(new Set(quickAmounts)).filter(amount => amount >= total).slice(0, 4);
   return <Dialog isOpen={isOpen} onClose={onClose} title="Complete Payment" maxWidth="md">
       <div className="space-y-6">
@@ -69,7 +69,7 @@ export function CheckoutDialog({
             </div>
 
             <div className="flex gap-2 flex-wrap">
-              {uniqueQuickAmounts.map(amount => <button key={amount} onClick={() => setAmountPaid(amount.toString())} className="px-3 py-1 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors">
+              {uniqueQuickAmounts.map(amount => <button key={amount} onClick={() => setAmountPaid(amount.toString())} className="px-4 py-2 text-sm font-medium bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-lg transition-colors">
                   {formatCurrency(amount)}
                 </button>)}
             </div>
