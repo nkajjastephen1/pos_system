@@ -32,6 +32,32 @@ export interface Transaction {
   date: string;
 }
 
+export interface Service {
+  id: string;
+  name: string;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ServiceCartItem {
+  service: Service;
+  amountCharged: number;
+}
+
+export interface ServiceTransaction {
+  id: string;
+  items: ServiceCartItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  paymentMethod: PaymentMethod;
+  amountPaid: number;
+  change: number;
+  date: string;
+  type: 'service';
+}
+
 export interface SalesSummary {
   totalSales: number;
   totalTransactions: number;
