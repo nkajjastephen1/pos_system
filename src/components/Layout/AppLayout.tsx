@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Package, History, Sun, Moon, Menu, BarChart } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, History, Sun, Moon, Menu, BarChart, Briefcase } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { Button } from '../ui/Button';
 export function AppLayout() {
@@ -19,9 +19,17 @@ export function AppLayout() {
     href: '/pos',
     icon: ShoppingCart
   }, {
+    name: 'Service Sales',
+    href: '/service-sales',
+    icon: Briefcase
+  }, {
     name: 'Products',
     href: '/products',
     icon: Package
+  }, {
+    name: 'Services',
+    href: '/services',
+    icon: Briefcase
   }, {
     name: 'Transactions',
     href: '/transactions',

@@ -4,10 +4,12 @@ import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Dialog } from '../components/ui/Dialog';
 import { usePOS } from '../context/POSContext';
+import { useServiceSales } from '../context/ServiceSalesContext';
 import { ReportType, generateReportPdf, getDateRange } from '../utils/reportGenerator';
 
 export function ReportsPage() {
   const { transactions } = usePOS();
+  const { transactions: serviceTransactions } = useServiceSales();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
@@ -27,7 +29,7 @@ export function ReportsPage() {
     const { label } = getDateRange(type);
     setRangeLabel(label);
     try {
-      const { blob } = await generateReportPdf(transactions, type);
+      const { blob } = await generateReportPdf({ transactions, serviceTransactions }, type);
       const url = URL.createObjectURL(blob);
       setPdfBlob(blob);
       setPdfUrl(url);
@@ -84,19 +86,31 @@ export function ReportsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left border-b border-slate-100 dark:border-slate-800">
-                    <th className="py-2">ID</th>
+                    <th className="py-2">Type</th>
+                    <th>ID</th>
                     <th>Date</th>
                     <th className="text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.slice(0, 50).map(t => (
-                    <tr key={t.id} className="border-b last:border-b-0 border-slate-100 dark:border-slate-800">
-                      <td className="py-2 text-xs">{t.id}</td>
-                      <td className="text-xs">{new Date(t.date).toLocaleString()}</td>
-                      <td className="text-xs text-right">{t.total.toLocaleString(undefined, { style: 'currency', currency: 'USD' })}</td>
-                    </tr>
-                  ))}
+                  {[
+                    ...transactions.slice(0, 25).map(t => ({ ...t, type: 'Product' as const })),
+                    ...serviceTransactions.slice(0, 25).map(t => ({ ...t, type: 'Service' as const }))
+                  ]
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .slice(0, 50)
+                    .map((t, idx) => (
+                      <tr key={`${t.type}-${t.id}`} className="border-b last:border-b-0 border-slate-100 dark:border-slate-800">
+                        <td className="py-2 text-xs">
+                          <span className={`px-2 py-1 rounded ${t.type === 'Service' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'}`}>
+                            {t.type}
+                          </span>
+                        </td>
+                        <td className="text-xs">{t.id}</td>
+                        <td className="text-xs">{new Date(t.date).toLocaleString()}</td>
+                        <td className="text-xs text-right">{t.total.toLocaleString(undefined, { style: 'currency', currency: 'USD' })}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
